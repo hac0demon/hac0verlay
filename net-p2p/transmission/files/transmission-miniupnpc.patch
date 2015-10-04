@@ -1,0 +1,12 @@
+diff -Naur transmission-2.84/libtransmission/upnp.c transmission-2.84_/libtransmission/upnp.c
+--- transmission-2.84/libtransmission/upnp.c	2014-07-01 10:08:59.714910697 -0700
++++ transmission-2.84_/libtransmission/upnp.c	2015-10-04 00:41:24.588773132 -0700
+@@ -88,7 +88,7 @@
+ 
+ #if (MINIUPNPC_API_VERSION >= 8) /* adds ipv6 and error args */
+   int err = UPNPDISCOVER_SUCCESS;
+-  ret = upnpDiscover (msec, NULL, NULL, 0, 0, &err);
++  ret = upnpDiscover (msec, NULL, NULL, 0, 0, 2, &err);
+   have_err = err != UPNPDISCOVER_SUCCESS;
+ #else
+   ret = upnpDiscover (msec, NULL, NULL, 0);
