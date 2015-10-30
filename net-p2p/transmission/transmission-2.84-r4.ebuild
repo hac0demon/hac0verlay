@@ -5,7 +5,7 @@
 EAPI=5
 inherit autotools eutils fdo-mime gnome2-utils qmake-utils systemd user
 
-DESCRIPTION="A Fast, Easy and Free BitTorrent client, with improved multidir patch from https://trac.transmissionbt.com/ticket/4231"
+DESCRIPTION="A Fast, Easy and Free BitTorrent client"
 HOMEPAGE="http://www.transmissionbt.com/"
 SRC_URI="http://download.transmissionbt.com/${PN}/files/${P}.tar.xz"
 
@@ -15,7 +15,7 @@ SRC_URI="http://download.transmissionbt.com/${PN}/files/${P}.tar.xz"
 LICENSE="|| ( GPL-2 GPL-3 Transmission-OpenSSL-exception ) GPL-2 MIT"
 SLOT=0
 IUSE="ayatana gtk lightweight systemd qt4 qt5 xfs"
-KEYWORDS="~amd64 ~arm ~mips ~ppc ~ppc64 ~x86 ~x86-fbsd ~amd64-linux"
+KEYWORDS="amd64 ~arm ~mips ~ppc ppc64 x86 ~x86-fbsd ~amd64-linux"
 
 RDEPEND=">=dev-libs/libevent-2.0.10:=
 	dev-libs/openssl:0=
@@ -48,6 +48,7 @@ DEPEND="${RDEPEND}
 	sys-devel/gettext
 	virtual/os-headers
 	virtual/pkgconfig
+	qt5? ( dev-qt/linguist-tools:5 )
 	xfs? ( sys-fs/xfsprogs )"
 
 REQUIRED_USE="ayatana? ( gtk ) ?? ( qt4 qt5 )"
@@ -69,10 +70,13 @@ src_prepare() {
 	sed -i -e 's|noinst\(_PROGRAMS = $(TESTS)\)|check\1|' lib${PN}/Makefile.am || die
 	# Fix for broken translations path
 	epatch "${FILESDIR}"/${PN}-2.80-translations-path-fix.patch
-	epatch "${FILESDIR}"/${PN}-2.84-multi-dir.patch
-	epatch "${FILESDIR}"/${PN}-miniupnpc.patch
+	epatch "${FILESDIR}/2.84-multi-dir.patch"
 	# http://trac.transmissionbt.com/ticket/5700
 	sed -i -e '1iQMAKE_CXXFLAGS += -std=c++11' qt/qtr.pro || die
+
+	epatch "${FILESDIR}/2.84-miniupnp14.patch"
+	epatch "${FILESDIR}/2.84-libevent-2.1.5.patch"
+	epatch "${FILESDIR}/2.84-node_alloc-segfault.patch"
 
 	epatch_user
 	eautoreconf
@@ -99,10 +103,11 @@ src_compile() {
 	emake
 
 	if use qt4 || use qt5; then
-		use qt4 && local -x QT_SELECT=4
-		use qt5 && local -x QT_SELECT=5
+		local qt_bindir
+		use qt4 && qt_bindir=$(qt4_get_bindir)
+		use qt5 && qt_bindir=$(qt5_get_bindir)
 		emake -C qt
-		lrelease qt/translations/*.ts || die
+		"${qt_bindir}"/lrelease qt/translations/*.ts || die
 	fi
 }
 
